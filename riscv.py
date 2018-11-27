@@ -62,6 +62,7 @@ RV_IMM_SIGN_BIT = 0x80000000
 RV_C_IMM_SIGN_BIT = 0x1000
 
 RV_OP_FLAG_SIGNED = 1 << 0
+RV_OP_FLAG_CSR = 1 << 1
 
 RV_AUX_NOPOST = 0  # no postfix, default for most instructions
 
@@ -425,13 +426,15 @@ class riscv_processor_t(processor_t):
         op.reg = regNo
         op.dtype = dtype
 
-    def op_imm(self, op, imm, signed=True):
+    def op_imm(self, op, imm, signed=True, csr=False):
         op.type = o_imm
         op.value = imm
         op.dtype = dt_dword
         op.specflag1 = 0
         if signed:
             op.specflag1 |= RV_OP_FLAG_SIGNED
+        if csr:
+            op.specflag1 |= RV_OP_FLAG_CSR
 
     def op_addr(self, op, addr):
         op.type = o_near
@@ -565,17 +568,17 @@ class riscv_processor_t(processor_t):
                 insn.itype = self.itype_ecall
         else:
             insn.itype = [
-                self.itype_csrrw, self.itype_csrrs, self.itype_csrrc,
+                self.itype_csrrw, self.itype_csrrs, self.itype_csrrc, self.itype_null,
                 self.itype_csrrwi, self.itype_csrrsi, self.itype_csrrci
             ][funct3-1]
             i = ord(insn.insnpref) | RV_INSN_CSR
             insn.insnpref = chr(i)
             self.op_reg(insn.Op1, self.decode_rd(opcode))
-            if funct3 < 3:
+            if funct3 <= 3:
                 self.op_reg(insn.Op3, rs1_zimm)
             else:
                 self.op_imm(insn.Op3, rs1_zimm, signed=False)
-            self.op_imm(insn.Op2, imm, signed=False)
+            self.op_imm(insn.Op2, imm, signed=False, csr=True)
 
 
     def decode_AMO(self, insn, opcode):
@@ -1065,11 +1068,11 @@ class riscv_processor_t(processor_t):
                     self.itype_csrrci: self.itype_csrci
                 }[insn.itype]
 
-                if insn.Op3.reg == self.ireg_zero:
-                    insn.Op3.type = o_void
-                elif insn.Op1.reg == self.ireg_zero:
+                if insn.Op1.reg == self.ireg_zero:
                     insn.Op1.assign(insn.Op2)
                     insn.Op2.assign(insn.Op3)
+                    insn.Op3.type = o_void
+                elif insn.Op3.reg == self.ireg_zero:
                     insn.Op3.type = o_void
 
     def handle_operand(self, insn, op, r):
@@ -1253,7 +1256,7 @@ class riscv_processor_t(processor_t):
         if optype == o_reg:
             ctx.out_register(self.reg_names[op.reg])
         elif optype == o_imm:
-            if ord(ctx.insn.insnpref) & RV_INSN_CSR == RV_INSN_CSR:
+            if op.specflag1 & RV_OP_FLAG_CSR == RV_OP_FLAG_CSR:
                 ctx.out_register(self.csr_names[op.value])
             else:
                 opflag = OOFW_IMM | OOFW_32 | OOF_NUMBER
