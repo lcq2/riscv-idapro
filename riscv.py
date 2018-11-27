@@ -53,6 +53,8 @@ RV_FMSUB = 0b1000111
 RV_FNMSUB = 0b1001011
 RV_FNMADD = 0b1001111
 RV_OP_FP = 0b1010011
+RV_OP_IMM32 = 0b0011011
+RV_OP32 = 0b0111011
 
 RV_MAJ_OPCODE_MASK = 0b01111111
 RV_C_MASK = 0b11
@@ -1165,6 +1167,8 @@ class riscv_processor_t(processor_t):
             RV_LOAD: self.decode_LOAD,
             RV_STORE: self.decode_STORE,
             RV_IMM: self.decode_IMM,
+            RV_OP_IMM32: self.decode_IMM,
+            RV_OP32: self.decode_OP,
             RV_OP: self.decode_OP,
             RV_MISC_MEM: self.decode_MISC_MEM,
             RV_SYSTEM: self.decode_SYSTEM,
