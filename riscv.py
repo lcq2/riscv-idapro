@@ -943,6 +943,11 @@ class riscv_processor_t(processor_t):
                 self.op_reg(insn.Op1, rs2)
                 self.op_displ(insn.Op2, self.ireg_sp, imm)
                 insn.itype = self.itype_sw
+            elif copcode == 0b111:
+                imm = (BITS(opcode, 7, 8) << 6) | (BITS(opcode, 9, 12) << 2)
+                self.op_reg(insn.Op1, rs2)
+                self.op_displ(insn.Op2, self.ireg_sp, imm)
+                insn.itype = self.itype_fsw
 
         if insn.itype != self.itype_null:
             return insn.size
