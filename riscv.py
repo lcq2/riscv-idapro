@@ -299,9 +299,9 @@ class riscv_processor_t(processor_t):
         self.init_registers()
         self.init_tables()
         if __EA64__:
-            print "64bit\n"
+            print ("64bit\n")
         else:
-            print "32bit"
+            print ("32bit")
 
         # available postfixes
         self.postfixs = ['.w', '.wu', '.d', '.s', '.x', '.l', '.lu']
@@ -946,7 +946,7 @@ class riscv_processor_t(processor_t):
 
         if insn.itype != self.itype_null:
             return insn.size
-        print "returning unknown for 0x%08x" % (insn.ea)
+        print ("returning unknown for 0x%08x" % (insn.ea))
         return 0
 
     def decode_normal(self, insn):
@@ -959,7 +959,7 @@ class riscv_processor_t(processor_t):
                 raise UnknownInstruction()
             return insn.size
         except (KeyError, UnknownInstruction) as e:
-            print "error: 0x%08x - %s" % (insn.ea, str(e))
+            print ("error: 0x%08x - %s" % (insn.ea, str(e)))
             return 0
 
     # rewrite one instruction into a simpler form
@@ -1123,7 +1123,7 @@ class riscv_processor_t(processor_t):
             'vDS'  # fake ds
         ]
 
-        for i in xrange(len(self.reg_names)):
+        for i in range(len(self.reg_names)):
             setattr(self, 'ireg_' + self.reg_names[i], i)
 
         self.reg_first_sreg = self.ireg_vCS
@@ -1148,7 +1148,7 @@ class riscv_processor_t(processor_t):
         ]
 
     def init_csrs(self):
-        for i in xrange(3, 32):
+        for i in range(3, 32):
             self.csr_names[0xC00+i] = "hpmcounter%d" % (i)
             self.csr_names[0xC80+i] = "hpmcounter%dh" % (i)
 
@@ -1300,7 +1300,7 @@ class riscv_processor_t(processor_t):
         if ctx.insn.Op1.type != o_void:
             ctx.out_one_operand(0)
 
-        for i in xrange(1,4):
+        for i in range(1,4):
             if ctx.insn[i].type == o_void:
                 break
             ctx.out_symbol(',')
